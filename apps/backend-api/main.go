@@ -48,7 +48,7 @@ func extractTextFromLiveScreen() (string, error) {
 }
 
 func queryOpenAI(prompt string) (string, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := os.Getenv("API")
 	if apiKey == "" {
 		return "", fmt.Errorf("OpenAI API key not set in .env")
 	}
