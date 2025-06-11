@@ -3,10 +3,8 @@ import React, { useState, useEffect } from "react";
 export default function App() {
   const [mode, setMode] = useState("translate");
   const [answer, setAnswer] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1); // -1 = current
 
-  // Fetch new response every 10s
+  // Fetch new response every 5 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -17,50 +15,26 @@ export default function App() {
         });
 
         const data = await res.json();
-        const newAnswer = data.answer;
-        setAnswer(newAnswer);
-        setHistory((prev) => [...prev, newAnswer]);
-        setHistoryIndex(-1);
+        setAnswer(data.answer);
       } catch (err) {
         console.error("Casper backend error:", err);
       }
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [mode]);
 
-  // Handle keys: Ctrl+Shift+X to clear, Up/Down to browse history
+  // Handle key: Ctrl+Shift+X to clear
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-
-      if (e.ctrlKey && e.shiftKey && key === "x") {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "x") {
         setAnswer("");
-        setHistoryIndex(-1);
-      }
-
-      if (key === "arrowup" && history.length > 0) {
-        e.preventDefault();
-        const newIndex = Math.min(historyIndex + 1, history.length - 1);
-        setHistoryIndex(newIndex);
-        setAnswer(history[history.length - 1 - newIndex]);
-      }
-
-      if (key === "arrowdown" && history.length > 0) {
-        e.preventDefault();
-        const newIndex = Math.max(historyIndex - 1, -1);
-        setHistoryIndex(newIndex);
-        if (newIndex === -1) {
-          setAnswer(history[history.length - 1]); // latest
-        } else {
-          setAnswer(history[history.length - 1 - newIndex]);
-        }
       }
     };
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [history, historyIndex]);
+  }, []);
 
   return (
     <div
@@ -110,7 +84,7 @@ export default function App() {
         </select>
       </div>
 
-      {/* Output Box */}
+      {/* Resizable Output Box */}
       {answer && (
         <div
           style={{
@@ -118,6 +92,9 @@ export default function App() {
             bottom: 30,
             left: 30,
             width: "400px",
+            minHeight: "120px",
+            resize: "both",
+            overflow: "auto",
             backgroundColor: "#000000cc",
             color: "white",
             padding: "12px",
@@ -130,10 +107,7 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <strong>🧠 Casper Response</strong>
             <button
-              onClick={() => {
-                setAnswer("");
-                setHistoryIndex(-1);
-              }}
+              onClick={() => setAnswer("")}
               style={{
                 background: "transparent",
                 border: "none",
